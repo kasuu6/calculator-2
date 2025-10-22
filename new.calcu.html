@@ -1,0 +1,1041 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Calories Calculator — Light & Dark Mode</title>
+
+    <!-- Poppins font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+      /* =========================
+        Color system (light by default; dark overrides in .dark-mode)
+        ========================= */
+
+      :root {
+  /* ===== Light Mode Colors ===== */
+  --bg: #fdf6e3;          /* soft cream background */
+  --card: #ffffff;         /* white card/panel */
+  --muted-card: #f8f3e9;   /* slightly darker panel */
+  --text: #2a2a2a;         /* dark gray for text, easy on eyes */
+  --subtext: #555555;      /* softer secondary text */
+  --accent: #00b34a;       /* green accent */
+  --accent-strong: #00993d;/* stronger green */
+  --border: #e0d5c2;       /* subtle border */
+  --soft-shadow: 0 6px 14px rgba(0,0,0,0.05);
+  --muted-btn: #f3ede0;
+  --btn-text: #00b34a;
+  --glass-border: rgba(0,0,0,0.05);
+}
+
+/* ===== Dark Mode Colors ===== */
+body.dark-mode {
+  --bg: #000000;
+  --card: #0a0a0a;
+  --muted-card: #111111;
+  --text: #e8f5e9;
+  --subtext: #a0cfa3;
+  --accent: #00b34a;
+  --accent-strong: #00ff66;
+  --border: #1f1f1f;
+  --muted-btn: #141414;
+  --btn-text: #00ff66;
+  --glass-border: rgba(255,255,255,0.05);
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ===== Body Text & Headings ===== */
+body, h1, h2, h3, h4, h5, h6, p, span, a, label, button,
+td, th, input, select, textarea {
+  color: var(--text);
+}
+
+/* ===== Back Button ===== */
+.back-btn {
+  background: var(--accent);      /* same accent color */
+  color: var(--btn-text);         /* use variable for text color */
+  border: none;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: background 0.3s, color 0.3s;
+}
+
+.back-btn:hover {
+  background: var(--accent-strong);
+  color: var(--btn-text);
+}
+
+
+/* ===== Cards & Containers ===== */
+.profile-card, .calculator-container, .display, .tabs button.active {
+  background: var(--card);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--soft-shadow);
+  color: var(--text);
+}
+
+
+/* ===== Buttons ===== */
+.clear, .send-btn {
+  background: var(--accent);
+  color: var(--btn-text); /* use variable for text color */
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+
+.clear:hover, .send-btn:hover {
+  background: var(--accent-strong);
+  color: var(--btn-text);
+}
+
+/* ===== Button text color variables ===== */
+:root {
+  --btn-text: #ffffff; /* light mode button text (white works on green) */
+}
+
+body.dark-mode {
+  --btn-text: #000000; /* dark mode button text (black works on bright green) */
+}
+
+
+
+
+      /* ========== Base ========== */
+      * { box-sizing: border-box; }
+      html,body { height:100%; margin:0; padding:0; font-family: 'Poppins', 'Segoe UI', Arial, sans-serif; }
+      body {
+        background: linear-gradient(180deg,var(--bg), rgba(0,0,0,0.00));
+        color: var(--text);
+        -webkit-font-smoothing:antialiased;
+        -moz-osx-font-smoothing:grayscale;
+        transition: background-color 300ms ease, color 300ms ease;
+        padding-bottom: var(--page-padding-bottom);
+      }
+
+      @keyframes pageFade {
+        from { opacity: 0; transform: translateY(6px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+
+      /* ========== Header ========== */
+      header {
+        position: relative;
+        background: linear-gradient(180deg, rgba(0,0,0,0.00), transparent);
+        border-bottom: 1px solid var(--glass-border);
+        padding: 18px 48px;
+        text-align: center;
+        margin-bottom: 0;
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+      header h1 {
+        font-size: 2.0em;
+        color: var(--text);
+        margin: 0;
+        letter-spacing: 1px;
+        font-weight: 600;
+      }
+      header p { color: var(--subtext); font-size:0.95em; margin:0; }
+
+      /* Back button (top-left) */
+      .back-btn {
+        position: absolute;
+        left: 18px;
+        top: 12px;
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--glass-border);
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight:600;
+        text-decoration:none;
+        transition: transform 160ms ease, background 160ms ease;
+        display:flex;
+        align-items:center;
+        gap:8px;
+      }
+      .back-btn:hover { transform: translateY(-3px); }
+
+      /* Toggle (top-right) */
+      .toggle-container {
+        position: absolute;
+        right: 18px;
+        top: 12px;
+        display:flex;
+        align-items:center;
+        gap:10px;
+        user-select:none;
+      }
+      .toggle-container .label { font-size:0.95em; color:var(--subtext); }
+
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 26px;
+      }
+      .switch input { opacity: 0; width: 0; height: 0; }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: var(--muted-btn);
+        transition: .28s;
+        border-radius: 999px;
+        border: 1px solid var(--glass-border);
+      }
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 3px;
+        bottom: 3px;
+        background-color: var(--card);
+        transition: .28s;
+        border-radius: 50%;
+        border: 1px solid var(--glass-border);
+      }
+      .switch input:checked + .slider {
+        background-color: var(--accent);
+        border-color: rgba(0,0,0,0.06);
+      }
+      .switch input:checked + .slider:before {
+        transform: translateX(22px);
+      }
+
+      /* ========== Profile Section ========== */
+      .profile-section {
+        background: linear-gradient(90deg, rgba(0,0,0,0.00), rgba(0,0,0,0.00));
+        padding: 18px 0 14px 0;
+        text-align: center;
+        border-bottom: 1px solid var(--glass-border);
+      }
+      .profile-card {
+        display: inline-flex;
+        align-items: center;
+        gap: 16px;
+        background: linear-gradient(180deg, var(--card), var(--muted-card));
+        border-radius: 12px;
+        padding: 12px 20px;
+        border: 1px solid var(--glass-border);
+        color: var(--text);
+        box-shadow: var(--soft-shadow);
+      }
+      .profile-card img {
+        width:64px; height:64px; border-radius:50%;
+        border: 2px solid rgba(0,0,0,0.04);
+        background: linear-gradient(180deg, rgba(0,0,0,0.00), transparent);
+      }
+      .profile-card-info { text-align:left; }
+      .profile-card-info .name { font-size:1.06em; font-weight:700; color:var(--text); }
+      .profile-card-info .goal { color:var(--accent); font-weight:600; margin-top:6px; }
+      .profile-card-info .details { color: var(--subtext); font-size:0.92em; margin-top:6px; }
+
+      /* ========== Center container / Calculator ========== */
+      .calculator-container {
+        max-width: 1100px;
+        margin: 28px auto 24px;
+        background: linear-gradient(180deg, rgba(0,0,0,0.00), rgba(0,0,0,0.00));
+        border-radius: 12px;
+        padding: 22px;
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--soft-shadow);
+        display: block;
+      }
+
+      .calculator { display:flex; flex-wrap:wrap; gap:20px; }
+
+      /* Left column (controls) */
+      .calculator > div:first-child { flex:1; min-width:320px; }
+
+      /* Right column (display) */
+      .calculator > div:last-child { flex:2; min-width:340px; }
+
+      /* ========== Search input ========== */
+      #searchBar {
+        font-size: 1.02em;
+        color: var(--text);
+        background: var(--muted-btn);
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        margin-bottom: 12px;
+        width: 100%;
+        box-sizing: border-box;
+        outline: none;
+        transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+      }
+      #searchBar:focus {
+        border-color: var(--accent);
+        box-shadow: none;
+      }
+      #searchBar::placeholder { color: var(--subtext); opacity:0.9; }
+
+      /* ========== Tabs ========== */
+      .tabs { margin-bottom: 12px; }
+      .tabs button {
+        background: transparent;
+        color: var(--subtext);
+        border: 1px solid transparent;
+        padding: 9px 14px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight:600;
+        margin-right:8px;
+        transition: all 160ms ease;
+      }
+      .tabs button.active {
+        color: var(--text);
+        background: linear-gradient(90deg, rgba(0,0,0,0.00), rgba(0,0,0,0.00));
+        box-shadow: none;
+        border: 1px solid var(--glass-border);
+      }
+
+      /* ========== Food buttons grid ========== */
+      #buttonsContainer {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        background: linear-gradient(180deg, rgba(0,0,0,0.00), rgba(0,0,0,0.00));
+        border-radius: 12px;
+        padding: 10px;
+        border: 1px solid var(--border);
+        max-height: 320px;
+        overflow-y:auto;
+      }
+      #buttonsContainer button {
+        background: var(--card);
+        color: var(--text);
+        border: 1px solid var(--glass-border);
+        border-radius: 10px;
+        padding: 12px 8px;
+        font-size: 0.98em;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        gap:8px;
+        cursor:pointer;
+        transition: transform 120ms ease, border-color 120ms ease;
+        box-shadow: none;
+      }
+      #buttonsContainer button:hover {
+        transform: translateY(-4px);
+        border-color: var(--glass-border);
+      }
+      #buttonsContainer img { width:48px; height:48px; border-radius:8px; object-fit:cover; }
+
+      /* ========== Display table ========== */
+      .display {
+        overflow-y:auto;
+        max-height: 400px;
+        border-radius: 12px;
+        padding: 12px;
+        background: linear-gradient(180deg,var(--card),var(--muted-card));
+        border: 1px solid var(--glass-border);
+        box-shadow: none;
+      }
+      .display table { width:100%; border-collapse:collapse; color:var(--text); }
+      .display th {
+        background: transparent;
+        color: var(--subtext);
+        padding:10px;
+        text-align:left;
+        font-weight:600;
+        border-bottom: 1px solid var(--border);
+        font-size:0.95em;
+      }
+      .display td {
+        padding:8px;
+        border-bottom:1px solid rgba(0,0,0,0.02);
+        vertical-align:middle;
+        color:var(--text);
+        font-size:0.95em;
+      }
+      .display tr:hover { background: rgba(0,0,0,0.01); }
+
+      /* ========== Total + Clear ========== */
+      .total {
+        font-size:1.25em;
+        color: var(--text);
+        background: linear-gradient(180deg, rgba(0,0,0,0.00), transparent);
+        padding: 12px;
+        border-radius:8px;
+        margin-bottom:10px;
+        border:1px solid var(--glass-border);
+        text-align:center;
+      }
+
+      .clear {
+        background: var(--accent);
+        color: var(--btn-text);
+        border:none;
+        padding:10px 22px;
+        border-radius:10px;
+        cursor:pointer;
+        font-size:0.98em;
+        font-weight:600;
+        transition: transform 120ms ease;
+        box-shadow:none;
+      }
+      .clear:hover { transform: translateY(-3px); }
+
+      /* +/- small buttons in table */
+      .small-btn {
+        background: var(--muted-btn);
+        color: var(--text);
+        border:1px solid var(--glass-border);
+        padding:6px 10px;
+        border-radius:6px;
+        cursor:pointer;
+      }
+
+      /* ========== Chatbot (floating) ========== */
+      #chatbot-float {
+        position: fixed;
+        bottom: 28px;
+        right: 28px;
+        z-index: 9999;
+        background: var(--accent);
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 160ms ease;
+        border: 1px solid var(--glass-border);
+        box-shadow: none;
+      }
+      #chatbot-float:hover { transform: translateY(-6px); }
+
+      #chatbot-popup {
+        position: fixed;
+        bottom: 96px;
+        right: 28px;
+        z-index: 10000;
+        width: 340px;
+        background: linear-gradient(180deg, var(--card), var(--muted-card));
+        border-radius: 12px;
+        padding: 14px;
+        display: none;
+        border: 1px solid var(--glass-border);
+        box-shadow: none;
+      }
+      #chatbot-popup h3 { color: var(--text); margin-top:0; margin-bottom:8px; font-size:1em; }
+
+      #chatbot-window {
+        height: 160px;
+        overflow-y: auto;
+        background: linear-gradient(180deg, rgba(0,0,0,0.00), transparent);
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        padding: 10px;
+        margin-bottom: 10px;
+        font-size:0.95em;
+        color: var(--text);
+      }
+
+      /* Chat message bubbles */
+      .chat-message { display:block; margin-bottom:10px; max-width:88%; word-wrap:break-word; }
+      .chat-user {
+        background: var(--muted-btn);
+        color: var(--text);
+        padding:8px 10px;
+        border-radius:10px;
+        align-self:flex-end;
+        margin-left:auto;
+        border: 1px solid var(--glass-border);
+        font-weight:500;
+      }
+      .chat-bot {
+        background: linear-gradient(90deg, rgba(0,0,0,0.02), rgba(0,0,0,0.00));
+        color: var(--text);
+        padding:8px 10px;
+        border-radius:10px;
+        margin-right:auto;
+        border: 1px solid var(--glass-border);
+        font-weight:500;
+      }
+      .chat-label { font-weight:700; margin-right:6px; color:var(--subtext); font-size:0.9em; }
+
+      /* Chat input & send */
+      #chatbot-input {
+        flex:1;
+        padding:8px 10px;
+        border-radius:8px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        outline: none;
+      }
+      #chatbot-popup button.send-btn {
+        margin-left:8px;
+        background: var(--accent);
+        color: var(--btn-text);
+        border:none;
+        border-radius:8px;
+        padding:8px 12px;
+        cursor:pointer;
+        font-weight:600;
+      }
+
+      /* Day selector override (if used later) */
+      #daySelector {
+        margin-top: 12px;
+        margin-bottom: 24px;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: transparent;
+        font-size: 1em;
+        color: var(--text);
+        cursor: pointer;
+      }
+
+      /* ========== Responsive tweaks ========== */
+      @media (max-width:900px) {
+        .calculator { flex-direction: column; }
+        #buttonsContainer { grid-template-columns: repeat(2,1fr); }
+        #chatbot-popup { right: 18px; left: 18px; width: auto; bottom: 90px; }
+        .calculator-container { margin: 20px 16px; padding:16px; }
+        header { padding: 12px 16px; }
+      }
+    </style>
+  </head>
+  <body>
+
+  <!-- Header -->
+  <header>
+    <!-- Back button top-left -->
+    <a href="Homepage.html" class="back-btn" title="Back to Homepage">
+      <!-- left arrow -->
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back
+    </a>
+
+    <a href="Homepage.html" style="text-decoration:none;"><h1>Calories Calculator</h1></a>
+
+
+  </header>
+
+  <!-- Profile Section (linked to profile.html) -->
+  <a href="profile.html" style="display:block; text-decoration:none;">
+    <div class="profile-section">
+      <div class="profile-card">
+        <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User">
+        <div class="profile-card-info">
+          <div class="name">John Doe</div>
+          <div class="goal">Goal: Lose Weight</div>
+          <div class="details">Age: 28 &nbsp;|&nbsp; Height: 175cm &nbsp;|&nbsp; Weight: 72kg</div>
+          <div id="bmiInfoProfile" style="font-size:1.02em; color:var(--subtext); margin-top:6px;"></div>
+        </div>
+      </div>
+    </div>
+  </a>
+
+  <!-- Meal Plan & Calorie Intake (separated below profile) -->
+  <div id="mealPlan" style="margin:18px auto 0 auto; background:transparent; border-radius:12px; padding:14px; max-width:480px;">
+    <div id="calorieIntake" style="font-size:1.05em; color:var(--accent); margin-bottom:8px;"></div>
+    <div id="mealPlanSuggestion" style="font-size:0.98em; color:var(--subtext);"></div>
+  </div>
+
+  <!-- Calculator Section -->
+  <div id="calculator" class="section fade-in">
+    <div class="calculator-container">
+      <div class="calculator">
+        <div style="flex:1; min-width:320px;">
+          <input type="text" id="searchBar" placeholder="Search items..." oninput="filterItems()">
+
+          <div class="tabs" style="margin-bottom:12px;">
+            <button id="fastFoodTab" onclick="showCategory('fast')" class="active">Fast Foods</button>
+            <button id="cookedMealTab" onclick="showCategory('cooked')">Cooked Meals</button>
+          </div>
+
+          <div id="buttonsContainer" aria-live="polite">
+            <button onclick="appendValue(104 , 'Apple')">
+              <img src="Food images/Apple Image.png" alt="Apple">
+              Apple
+            </button>
+            <button onclick="appendValue(100, 'Banana')">
+              <img src="Food images/Banana Image.png" alt="Banana">
+              Banana
+            </button>
+            <button onclick="appendValue(300, 'Burger')">
+              <img src="Food images/Burger Image.png" alt="Burger">
+              Burger
+            </button>
+            <button onclick="appendValue(250, 'Pizza')">
+              <img src="Food images/Pizza Slice Image.png" alt="Pizza">
+              Pizza
+            </button>
+            <button onclick="appendValue(150, 'Salad')">
+              <img src="Food images/Salad Bowl Image.png" alt="Salad">
+              Salad
+            </button>
+            <button onclick="appendValue(270, 'Sandwich')">
+              <img src="Food images/Sandwich Image.png" alt="Sandwich">
+              Sandwich
+            </button>
+            <button onclick="appendValue(62, 'Orange')">
+              <img src="Food images/Orange Image.png" alt="Orange">
+              Orange
+            </button>
+            <button onclick="appendValue(90, 'Egg')">
+              <img src="Food images/Egg Image.png" alt="Egg">
+              Egg
+            </button>
+            <button onclick="appendValue(122, 'Milk')">
+              <img src="Food images/Milk Carton Image.png" alt="Milk">
+              Milk
+            </button>
+            <button onclick="appendValue(230, 'FrenchFries')">
+              <img src="Food images/French Fries Image.png" alt="French Fries">
+              French Fries
+            </button>
+            <button onclick="appendValue(179, 'Chicken')">
+              <img src="Food images/Cooked Chicken Image.png" alt="Chicken">
+              Chicken
+            </button>
+            <button onclick="appendValue(210, 'Beef')">
+              <img src="Food images/Cooked Beef Image.png" alt="Beef">
+              Beef
+            </button>
+            <button onclick="appendValue(137, 'IceCream')">
+              <img src="Food images/Ice Cream Scoop Image.png" alt="Ice Cream">
+              Ice Cream
+            </button>
+            <button onclick="appendValue(470, 'Tofu')">
+              <img src="Food images/Tofu Block Image.png" alt="Tofu">
+              Tofu
+            </button>
+            <button onclick="appendValue(196, 'Pasta')">
+              <img src="Food images/Pasta Dish Image.png" alt="Pasta">
+              Pasta
+            </button>
+            <button onclick="appendValue(109, 'Cheese')">
+              <img src="Food images/Cheese Block Image.png" alt="Cheese">
+              Cheese
+            </button>
+            <button onclick="appendValue(204, 'Rice')">
+              <img src="Food images/Cooked Rice Image.png" alt="Rice">
+              Rice
+            </button>
+            <button onclick="appendValue(140, 'Bread')">
+              <img src="Food images/Bread Loaf Image.png" alt="Bread">
+              Bread
+            </button>
+            <button onclick="appendValue(62, 'Papaya')">
+              <img src="Food images/Papaya Slice Image.png" alt="Papaya">
+              Papaya
+            </button>
+            <button onclick="appendValue(88, 'Mushroom')">
+              <img src="Food images/Mushroom Image.png" alt="Mushroom">
+              Mushroom
+            </button>
+            <button onclick="appendValue(130, 'Avocado')">
+              <img src="Food images/Avocado Half Image.png" alt="Avocado">
+              Avocado
+            </button>
+            <button onclick="appendValue(142, 'Yogurt')">
+              <img src="Food images/Yogurt Cup Image.png" alt="Yogurt">
+              Yogurt
+            </button>
+            <button onclick="appendValue(121, 'Salmon')">
+              <img src="Food images/Salmon Fillet Image.png" alt="Salmon">
+              Salmon
+            </button>
+          </div>
+        </div>
+
+        <div style="flex:2; min-width:340px;">
+          <div class="total" id="totalCalories">Total Calories: 0</div>
+
+          <div class="display" id="display">
+            <table>
+              <thead>
+                <tr>
+                  <th>Image</th>
+                  <th>Item</th>
+                  <th>Grams</th>
+                  <th>Quantity</th>
+                  <th>Calories</th>
+                  <th>Decrease</th>
+                  <th>Increase</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+
+          <div style="margin-top:12px;">
+            <button class="clear" onclick="clearDisplay()">Clear</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating AI Chatbot Icon -->
+  <div id="chatbot-float" title="Open chat" role="button" aria-label="Open chat">
+    <span style="font-size:1.6em; color:var(--btn-text);">💬</span>
+  </div>
+
+  <!-- Chatbot Popup -->
+  <div id="chatbot-popup" role="dialog" aria-hidden="true">
+    <h3>AI Chatbot</h3>
+    <div id="chatbot-window" aria-live="polite"></div>
+    <div style="display:flex;">
+      <input id="chatbot-input" type="text" placeholder="Ask me about your meal plan, calories, BMI...">
+      <button onclick="sendChatbotMessage()" class="send-btn">Send</button>
+    </div>
+  </div>
+
+  <script>
+  /* =========================
+    Your original JS (kept intact)
+    with theme toggle + small enhancements
+    ========================= */
+
+  /* ---------- Theme toggle logic ---------- */
+const toggle = document.getElementById('modeToggle');
+const bodyEl = document.body;
+
+// ----- Apply stored theme on page load -----
+const storedTheme = localStorage.getItem('theme');
+if (storedTheme === 'dark') {
+  bodyEl.classList.add('dark-mode');
+  toggle.checked = true;
+} else {
+  bodyEl.classList.remove('dark-mode');
+  toggle.checked = false;
+}
+
+// ----- When user changes the toggle -----
+toggle.addEventListener('change', () => {
+  if (toggle.checked) {
+    bodyEl.classList.add('dark-mode');
+    localStorage.setItem('theme', 'dark');
+  } else {
+    bodyEl.classList.remove('dark-mode');
+    localStorage.setItem('theme', 'light');
+  }
+});
+
+
+  /* =========================
+    Calorie calculator logic
+    (kept functionally identical to your original file)
+    ========================= */
+
+  let items = [];
+
+  function appendValue(calories, label) {
+      let idx = items.findIndex(item => item.label === label);
+      if (idx > -1) {
+          items[idx].quantity += 1;
+      } else {
+          items.push({
+              label: label,
+              calories: calories,
+              grams: 100,
+              quantity: 1,
+              image: getImagePath(label)
+          });
+      }
+      renderTable();
+  }
+
+  function clearDisplay() {
+      items = [];
+      renderTable();
+  }
+
+  function increaseQuantity(index) {
+      items[index].quantity += 1;
+      renderTable();
+  }
+
+  function decreaseQuantity(index) {
+      if (items[index].quantity > 1) {
+          items[index].quantity -= 1;
+      } else {
+          items.splice(index, 1);
+      }
+      renderTable();
+  }
+
+  function updateGrams(index, newGrams) {
+      items[index].grams = parseInt(newGrams) || 100;
+      renderTable();
+  }
+
+  function filterItems() {
+      const search = document.getElementById('searchBar').value.toLowerCase();
+      const buttons = document.querySelectorAll('#buttonsContainer button');
+      buttons.forEach(btn => {
+          const text = btn.textContent.toLowerCase();
+          const alt = btn.querySelector('img') ? btn.querySelector('img').alt.toLowerCase() : '';
+          btn.style.display = (text.includes(search) || alt.includes(search)) ? '' : 'none';
+      });
+  }
+
+  function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+      let total = 0;
+      items.forEach((item, idx) => {
+          const cal = ((item.calories / 100) * item.grams) * item.quantity;
+          total += cal;
+          const row = document.createElement('tr');
+          row.innerHTML = `
+              <td><img src="${item.image}" alt="${item.label}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;"></td>
+              <td>${item.label}</td>
+              <td>
+                  <input type="number" min="1" value="${item.grams}" style="width:60px; background:transparent; color:var(--text); border:1px solid var(--border); padding:6px; border-radius:6px;" onchange="updateGrams(${idx}, this.value)">
+              </td>
+              <td>${item.quantity}</td>
+              <td>${cal.toFixed(1)}</td>
+              <td><button onclick="decreaseQuantity(${idx})" class="small-btn">-</button></td>
+              <td><button onclick="increaseQuantity(${idx})" class="small-btn">+</button></td>
+          `;
+          tbody.appendChild(row);
+      });
+      document.getElementById('totalCalories').textContent = 'Total Calories: ' + total.toFixed(1);
+  }
+
+  function getImagePath(label) {
+      const images = {
+          'Apple': 'Food images/Apple Image.png',
+          'Banana': 'Food images/Banana Image.png',
+          'Burger': 'Food images/Burger Image.png',
+          'Pizza': 'Food images/Pizza Slice Image.png',
+          'Salad': 'Food images/Salad Bowl Image.png',
+          'Sandwich': 'Food images/Sandwich Image.png',
+          'Orange': 'Food images/Orange Image.png',
+          'Egg': 'Food images/Egg Image.png',
+          'Milk': 'Food images/Milk Carton Image.png',
+          'FrenchFries': 'Food images/French Fries Image.png',
+          'Chicken': 'Food images/Cooked Chicken Image.png',
+          'Beef': 'Food images/Cooked Beef Image.png',
+          'IceCream': 'Food images/Ice Cream Scoop Image.png',
+          'Tofu': 'Food images/Tofu Block Image.png',
+          'Pasta': 'Food images/Pasta Dish Image.png',
+          'Cheese': 'Food images/Cheese Block Image.png',
+          'Rice': 'Food images/Cooked Rice Image.png',
+          'Bread': 'Food images/Bread Loaf Image.png',
+          'Papaya': 'Food images/Papaya Slice Image.png',
+          'Mushroom': 'Food images/Mushroom Image.png',
+          'Avocado': 'Food images/Avocado Half Image.png',
+          'Yogurt': 'Food images/Yogurt Cup Image.png',
+          'Salmon': 'Food images/Salmon Fillet Image.png'
+      };
+      return images[label] || '';
+  }
+
+  /* ---------- Meal plan & BMI (unchanged) ---------- */
+  function getMealPlan(goal, calorieIntake) {
+      if (goal === 'Lose Weight') {
+          return `
+          <b>Breakfast:</b> Oatmeal with Banana (200 kcal)<br>
+          <b>Lunch:</b> Grilled Chicken Salad (350 kcal)<br>
+          <b>Dinner:</b> Salmon, Rice & Veggies (400 kcal)<br>
+          <i>Total: ~${calorieIntake} kcal</i>
+          `;
+      } else if (goal === 'Gain Weight') {
+          return `
+          <b>Breakfast:</b> Eggs & Toast (350 kcal)<br>
+          <b>Lunch:</b> Beef Sandwich & Cheese (500 kcal)<br>
+          <b>Dinner:</b> Pasta with Chicken (600 kcal)<br>
+          <i>Total: ~${calorieIntake} kcal</i>
+          `;
+      } else {
+          return `
+          <b>Breakfast:</b> Yogurt & Fruit (250 kcal)<br>
+          <b>Lunch:</b> Tofu Salad & Bread (400 kcal)<br>
+          <b>Dinner:</b> Rice, Salmon & Veggies (450 kcal)<br>
+          <i>Total: ~${calorieIntake} kcal</i>
+          `;
+      }
+  }
+
+  function showMealPlan() {
+      // Example profile data (replace with dynamic data if available)
+      const heightCm = 175;
+      const weightKg = 72;
+      const goal = 'Lose Weight';
+
+      // BMI Calculation
+      const heightM = heightCm / 100;
+      const bmi = (weightKg / (heightM * heightM)).toFixed(1);
+
+      // Calorie Intake Suggestion
+      let calorieIntake;
+      if (goal === 'Lose Weight') {
+          calorieIntake = Math.max(1200, Math.round(22 * weightKg));
+      } else if (goal === 'Gain Weight') {
+          calorieIntake = Math.round(30 * weightKg);
+      } else {
+          calorieIntake = Math.round(25 * weightKg);
+      }
+
+      // BMI Info
+      let bmiStatus = '';
+      if (bmi < 18.5) bmiStatus = 'Underweight';
+      else if (bmi < 25) bmiStatus = 'Normal';
+      else if (bmi < 30) bmiStatus = 'Overweight';
+      else bmiStatus = 'Obese';
+
+      // Show BMI inside profile
+      document.getElementById('bmiInfoProfile').innerHTML = `BMI: <b>${bmi}</b> (${bmiStatus})`;
+      // Show calorie intake and meal plan below profile
+      document.getElementById('calorieIntake').innerHTML = `Recommended Daily Calories: <b>${calorieIntake} kcal</b>`;
+      document.getElementById('mealPlanSuggestion').innerHTML = getMealPlan(goal, calorieIntake);
+  }
+
+  /* ---------- Category filtering ---------- */
+  const fastFoods = [
+    'Burger', 'Pizza', 'FrenchFries', 'Sandwich', 'IceCream'
+  ];
+  const cookedMeals = [
+    'Apple', 'Banana', 'Salad', 'Orange', 'Egg', 'Milk', 'Chicken', 'Beef', 'Tofu', 'Pasta', 'Cheese', 'Rice', 'Bread', 'Papaya', 'Mushroom', 'Avocado', 'Yogurt', 'Salmon'
+  ];
+
+  function showCategory(category) {
+    const buttons = document.querySelectorAll('#buttonsContainer button');
+    buttons.forEach(btn => {
+      const label = btn.textContent.trim();
+      if (category === 'fast') {
+        btn.style.display = fastFoods.includes(label) ? '' : 'none';
+      } else {
+        btn.style.display = cookedMeals.includes(label) ? '' : 'none';
+      }
+    });
+    // Highlight active tab
+    const fastBtn = document.getElementById('fastFoodTab');
+    const cookedBtn = document.getElementById('cookedMealTab');
+    if (category === 'fast') {
+      fastBtn.classList.add('active'); cookedBtn.classList.remove('active');
+    } else {
+      cookedBtn.classList.add('active'); fastBtn.classList.remove('active');
+    }
+  }
+
+  // Show all by default on load
+  window.onload = function() {
+    document.getElementById('searchBar').focus();
+    renderTable();
+    showMealPlan();
+    showCategory('fast'); // Default to fast foods
+  };
+
+  /* ---------- Chatbot toggle & behavior (kept + improved accessibility) ---------- */
+  const chatbotFloat = document.getElementById('chatbot-float');
+  const chatbotPopup = document.getElementById('chatbot-popup');
+  const chatbotWindow = document.getElementById('chatbot-window');
+
+  chatbotFloat.onclick = function() {
+    const open = chatbotPopup.style.display === 'block';
+    chatbotPopup.style.display = open ? 'none' : 'block';
+    chatbotPopup.setAttribute('aria-hidden', open ? 'true' : 'false');
+    if (!open) {
+      // focus input for accessibility
+      document.getElementById('chatbot-input').focus();
+    }
+  };
+
+  // Close popup when clicking outside
+  document.addEventListener('click', function(e) {
+    if (
+      chatbotPopup.style.display === 'block' &&
+      !chatbotPopup.contains(e.target) &&
+      !chatbotFloat.contains(e.target)
+    ) {
+      chatbotPopup.style.display = 'none';
+      chatbotPopup.setAttribute('aria-hidden', 'true');
+    }
+  });
+
+  // --- Simple AI Chatbot (keyword responses) ---
+  function sendChatbotMessage() {
+    const input = document.getElementById('chatbot-input');
+    const windowEl = document.getElementById('chatbot-window');
+    const userMsg = input.value.trim();
+    if (!userMsg) return;
+
+    // append user bubble
+    const userHtml = `<div class="chat-message chat-user"><span class="chat-label">You:</span> ${escapeHtml(userMsg)}</div>`;
+    windowEl.innerHTML += userHtml;
+    input.value = '';
+
+    // Basic keyword-based responses
+    let response = "I'm here to help! Ask me about your meal plan, calories, BMI, or nutrition facts.";
+    if (/bmi|body mass/i.test(userMsg)) {
+      // try to read BMI from profile section
+      const bmiText = document.getElementById('bmiInfoProfile') ? document.getElementById('bmiInfoProfile').textContent : '';
+      response = `Your BMI is ${bmiText ? bmiText.replace('BMI: ', '') : 'calculated based on your profile'}.`;
+    } else if (/calorie|calories/i.test(userMsg)) {
+      response = `Your daily meal plan recommendation is shown in the profile section.`;
+    } else if (/meal plan|breakfast|lunch|dinner/i.test(userMsg)) {
+      response = "Meal plan details are available in your profile section below the avatar.";
+    } else if (/protein|carb|fat|nutrient|nutrition|vitamin|mineral/i.test(userMsg)) {
+      response = "Nutrition facts vary by food. For example, chicken breast is high in protein, rice is rich in carbohydrates, and avocado contains healthy fats. Ask about a specific food for more details!";
+    } else if (/apple|banana|chicken|rice|salmon|egg|milk|beef|tofu|pasta|cheese|bread|yogurt|shrimp|cod|potato|vegetable|fruit/i.test(userMsg)) {
+      const facts = {
+        apple: "An apple (100g) contains ~52 kcal, 0.3g protein, 14g carbs, 0.2g fat.",
+        banana: "A banana (100g) contains ~89 kcal, 1.1g protein, 23g carbs, 0.3g fat.",
+        chicken: "Chicken breast (100g) contains ~165 kcal, 31g protein, 0g carbs, 3.6g fat.",
+        rice: "Cooked white rice (100g) contains ~130 kcal, 2.7g protein, 28g carbs, 0.3g fat.",
+        salmon: "Salmon (100g) contains ~208 kcal, 20g protein, 0g carbs, 13g fat.",
+        egg: "Egg (1 large) contains ~72 kcal, 6g protein, 0.4g carbs, 5g fat.",
+        milk: "Milk (100ml) contains ~42 kcal, 3.4g protein, 5g carbs, 1g fat.",
+        beef: "Beef (100g) contains ~250 kcal, 26g protein, 0g carbs, 17g fat.",
+        tofu: "Tofu (100g) contains ~76 kcal, 8g protein, 1.9g carbs, 4.8g fat.",
+        pasta: "Cooked pasta (100g) contains ~131 kcal, 5g protein, 25g carbs, 1g fat.",
+        cheese: "Cheddar cheese (100g) contains ~402 kcal, 25g protein, 1.3g carbs, 33g fat.",
+        bread: "White bread (1 slice, ~25g) contains ~67 kcal, 2g protein, 13g carbs, 1g fat.",
+        yogurt: "Plain yogurt (100g) contains ~59 kcal, 10g protein, 3.6g carbs, 0.4g fat.",
+        shrimp: "Shrimp (100g) contains ~99 kcal, 24g protein, 0.2g carbs, 0.3g fat.",
+        cod: "Cod (100g) contains ~82 kcal, 18g protein, 0g carbs, 0.7g fat.",
+        potato: "Potato (100g) contains ~77 kcal, 2g protein, 17g carbs, 0.1g fat.",
+        vegetable: "Vegetables vary, but are generally low in calories and high in vitamins and minerals.",
+        fruit: "Fruits are rich in vitamins, minerals, and fiber, and usually low in fat."
+      };
+      for (const key in facts) {
+        if (userMsg.toLowerCase().includes(key)) {
+          response = facts[key];
+          break;
+        }
+      }
+    } else if (/hello|hi|hey/i.test(userMsg)) {
+      response = "Hello! How can I assist you with your nutrition today?";
+    }
+
+    // append bot bubble
+    const botHtml = `<div class="chat-message chat-bot"><span class="chat-label">AI:</span> ${response}</div>`;
+    windowEl.innerHTML += botHtml;
+    windowEl.scrollTop = windowEl.scrollHeight;
+  }
+
+  // small helper: escape HTML in user input for safety / display
+  function escapeHtml(unsafe) {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+  </script>
+  </body>
+  </html>
